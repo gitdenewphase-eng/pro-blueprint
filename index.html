@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Contract Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00E676;
+    --green-dim: #00C853;
+    --green-glow: rgba(0,230,118,0.12);
+    --bg: #0A0C0E;
+    --surface: #111417;
+    --surface2: #181C20;
+    --surface3: #1E2328;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #F0F2F4;
+    --text2: #8A9099;
+    --text3: #555D66;
+    --red: #FF5252;
+    --amber: #FFB300;
+    --blue: #40C4FF;
+    --purple: #CE93D8;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+  h1,h2,h3,h4 { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.02em; }
+  button { cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .brand { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
+  .brand .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--green); letter-spacing: 0.05em; line-height: 1; }
+  .brand .sub { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 3px; }
+  .nav-section-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.12em; padding: 16px 20px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+    border-left: 2px solid transparent; transition: all 0.15s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--green); background: var(--green-glow); border-left-color: var(--green); }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-item .score-badge {
+    margin-left: auto; font-size: 11px; font-weight: 600; background: var(--surface3); 
+    color: var(--text2); padding: 2px 7px; border-radius: 20px;
+  }
+  .nav-item.active .score-badge { background: rgba(0,230,118,0.15); color: var(--green); }
+
+  /* MAIN */
+  #main { flex: 1; overflow-y: auto; min-height: 100vh; }
+  .page { display: none; padding: 32px 36px; max-width: 960px; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-size: 36px; font-weight: 800; color: var(--text); }
+  .page-subtitle { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+  /* STAT CARD */
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-value { font-family: 'Barlow Condensed', sans-serif; font-size: 38px; font-weight: 800; line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--text2); }
+
+  /* READINESS RING */
+  .readiness-wrap { display: flex; align-items: center; gap: 28px; }
+  .ring-container { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+  .ring-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+  .ring-pct { font-family: 'Barlow Condensed', sans-serif; font-size: 34px; font-weight: 800; color: var(--text); line-height: 1; }
+  .ring-text { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
+  .pillar-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .pillar-bar-label { font-size: 13px; color: var(--text2); width: 110px; flex-shrink: 0; }
+  .pillar-bar-track { flex: 1; height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .pillar-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+  .pillar-bar-val { font-size: 12px; font-weight: 600; width: 36px; text-align: right; }
+
+  /* METRIC ROW */
+  .metric-row {
+    display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-name { flex: 1; font-size: 14px; color: var(--text); }
+  .metric-slider { flex: 0 0 180px; }
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px;
+    background: var(--surface3); outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--green); cursor: pointer; box-shadow: 0 0 0 3px rgba(0,230,118,0.2);
+  }
+  .metric-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; width: 30px; text-align: right; }
+  .metric-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 6px;
+    padding: 4px 8px; font-size: 12px; transition: all 0.15s;
+  }
+  .btn-icon:hover { border-color: var(--border2); color: var(--text); }
+  .btn-icon.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px;
+    border-radius: var(--radius); font-size: 14px; font-weight: 500; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--green); color: #0A0C0E; font-weight: 600; }
+  .btn-primary:hover { background: #33EB91; }
+  .btn-ghost { background: none; border: 1px solid var(--border2); color: var(--text2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-danger { background: none; border: 1px solid rgba(255,82,82,0.3); color: var(--red); }
+  .btn-danger:hover { background: rgba(255,82,82,0.1); }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; }
+
+  /* SCORE COLOR */
+  .score-green { color: var(--green); }
+  .score-amber { color: var(--amber); }
+  .score-red { color: var(--red); }
+  .score-blue { color: var(--blue); }
+
+  /* PROGRESS RING SVG */
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--surface3); stroke-width: 10; }
+  .ring-fg { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+
+  /* GOALS */
+  .goal-item {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 14px;
+  }
+  .goal-checkbox { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border2); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all 0.15s; }
+  .goal-checkbox.done { background: var(--green); border-color: var(--green); }
+  .goal-checkbox.done::after { content: '✓'; color: #0A0C0E; font-size: 12px; font-weight: 700; }
+  .goal-text { flex: 1; }
+  .goal-title { font-size: 14px; font-weight: 500; }
+  .goal-title.done { text-decoration: line-through; color: var(--text3); }
+  .goal-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .goal-category { font-size: 11px; padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border2); color: var(--text2); }
+  .goal-deadline { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* JOURNAL */
+  .journal-entry { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .journal-date { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .journal-content { font-size: 14px; color: var(--text); line-height: 1.6; }
+  .journal-mood { display: inline-block; font-size: 11px; padding: 2px 10px; border-radius: 20px; margin-top: 8px; }
+  .mood-great { background: rgba(0,230,118,0.15); color: var(--green); }
+  .mood-good { background: rgba(64,196,255,0.15); color: var(--blue); }
+  .mood-okay { background: rgba(255,179,0,0.15); color: var(--amber); }
+  .mood-rough { background: rgba(255,82,82,0.15); color: var(--red); }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 28px; width: 440px; max-width: 95vw; }
+  .modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+  input[type=text], input[type=date], textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius);
+    padding: 10px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus { border-color: var(--green); }
+  select option { background: var(--surface2); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* PILLAR PAGES */
+  .pillar-accent { display: inline-block; width: 4px; height: 28px; border-radius: 2px; vertical-align: middle; margin-right: 10px; }
+
+  /* EDIT NAME */
+  .editable-title { cursor: pointer; border-bottom: 1px dashed var(--text3); }
+  .editable-title:hover { border-bottom-color: var(--green); color: var(--green); }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -21px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--green); border: 2px solid var(--bg); }
+  .timeline-dot.pending { background: var(--surface3); border-color: var(--border2); }
+  .timeline-date { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .timeline-text { font-size: 13px; color: var(--text2); }
+
+  /* CONTRACT SCORE BIG */
+  .contract-score-big { text-align: center; padding: 32px 0; }
+  .contract-score-pct { font-family: 'Barlow Condensed', sans-serif; font-size: 96px; font-weight: 800; line-height: 1; }
+  .contract-score-label { font-size: 13px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 700px) {
+    #sidebar { width: 60px; min-width: 60px; }
+    .brand .sub, .nav-item span:not(.icon), .nav-item .score-badge, .nav-section-label { display: none; }
+    .page { padding: 20px 16px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .metric-slider { flex: 0 0 120px; }
+  }
+
+  /* CATEGORY COLOR ACCENTS */
+  .cat-physical { --cat: #00E676; }
+  .cat-mental { --cat: #CE93D8; }
+  .cat-technique { --cat: #40C4FF; }
+  .cat-tactical { --cat: #FFB300; }
+  .cat-recovery { --cat: #FF7043; }
+  .cat-brand { --cat: #F06292; }
+  .cat-nutrition { --cat: #A5D6A7; }
+
+  .pillar-tag {
+    font-size: 11px; padding: 2px 9px; border-radius: 20px; border: 1px solid currentColor;
+    opacity: 0.8; display: inline-block;
+  }
+
+  /* ADD CATEGORY */
+  .add-cat-btn {
+    background: none; border: 1px dashed var(--border2); color: var(--text3); border-radius: var(--radius);
+    padding: 10px 18px; font-size: 14px; width: 100%; transition: all 0.15s; text-align: center; margin-top: 12px;
+  }
+  .add-cat-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* WEIGHT SLIDER */
+  .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .weight-label { font-size: 13px; color: var(--text2); width: 120px; }
+  .weight-val { font-size: 13px; font-weight: 600; color: var(--text); width: 36px; text-align: right; }
+
+  /* SIDEBAR ADD PILLAR */
+  .nav-add-pillar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 20px 14px;
+    font-size: 12px; color: var(--text3); background: none; border: none;
+    width: 100%; text-align: left; cursor: pointer; transition: color 0.15s;
+  }
+  .nav-add-pillar:hover { color: var(--green); }
+
+  /* RIGHT-CLICK CONTEXT MENU */
+  #ctx-menu {
+    position: fixed; z-index: 9999; background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 4px; min-width: 160px; display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  #ctx-menu.open { display: block; }
+  .ctx-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 13px;
+    border-radius: 6px; cursor: pointer; transition: background 0.1s; border: none; background: none;
+    width: 100%; text-align: left; color: var(--text2);
+  }
+  .ctx-item:hover { background: var(--surface2); color: var(--text); }
+  .ctx-item.danger { color: var(--red); }
+  .ctx-item.danger:hover { background: rgba(255,82,82,0.1); color: var(--red); }
+  .ctx-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* TODO LIST */
+  .todo-pillar-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .todo-pillar-tab {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; transition: all 0.15s;
+  }
+  .todo-pillar-tab:hover { color: var(--text); border-color: var(--border); }
+  .todo-pillar-tab.active { color: #0A0C0E; font-weight: 600; border-color: transparent; }
+  .todo-input-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .todo-input-row input { flex: 1; }
+  .todo-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 14px; border-radius: var(--radius); background: var(--surface2);
+    border: 1px solid var(--border); margin-bottom: 8px; transition: opacity 0.2s;
+  }
+  .todo-item.done { opacity: 0.45; }
+  .todo-check {
+    width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border2);
+    cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    margin-top: 1px; transition: all 0.15s;
+  }
+  .todo-check.done { border-color: transparent; }
+  .todo-check.done::after { content: '✓'; font-size: 11px; font-weight: 700; color: #0A0C0E; }
+  .todo-text { flex: 1; font-size: 14px; color: var(--text); line-height: 1.4; }
+  .todo-text.done { text-decoration: line-through; color: var(--text3); }
+  .todo-date-header { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin: 18px 0 10px; }
+  .todo-empty { font-size: 14px; color: var(--text3); padding: 20px 0; }
+  .todo-progress-bar { height: 4px; background: var(--surface3); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .todo-progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+  /* CALENDAR */
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .cal-month-label { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; }
+  .cal-nav-btn { background: none; border: 1px solid var(--border2); color: var(--text2); border-radius: var(--radius); padding: 6px 14px; font-size: 18px; transition: all 0.15s; }
+  .cal-nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border-radius: var(--radius); overflow: hidden; }
+  .cal-day-header { background: var(--surface2); padding: 8px 0; text-align: center; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .cal-cell { background: var(--surface); min-height: 90px; padding: 8px; cursor: pointer; transition: background 0.12s; position: relative; }
+  .cal-cell:hover { background: var(--surface2); }
+  .cal-cell.other-month { background: var(--bg); opacity: 0.5; cursor: default; }
+  .cal-cell.today { background: var(--surface2); }
+  .cal-cell.today .cal-date-num { color: var(--green); font-weight: 700; }
+  .cal-date-num { font-size: 13px; color: var(--text2); margin-bottom: 4px; display: block; }
+  .cal-event-pill {
+    display: block; font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    cursor: pointer; font-weight: 500;
+  }
+  .event-match { background: rgba(255,82,82,0.18); color: #FF7A7A; }
+  .event-training { background: rgba(0,230,118,0.15); color: var(--green); }
+  .event-rest { background: rgba(255,179,0,0.15); color: var(--amber); }
+  .event-trial { background: rgba(64,196,255,0.15); color: var(--blue); }
+  .event-other { background: rgba(206,147,216,0.15); color: var(--purple); }
+  .cal-more { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .upcoming-event-row { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .upcoming-event-row:last-child { border-bottom: none; }
+  .upcoming-date-badge { flex-shrink: 0; text-align: center; background: var(--surface2); border-radius: var(--radius); padding: 6px 10px; min-width: 44px; }
+  .upcoming-date-day { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; color: var(--text); }
+  .upcoming-date-mon { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .upcoming-event-info { flex: 1; }
+  .upcoming-event-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .upcoming-event-meta { font-size: 12px; color: var(--text3); margin-top: 3px; }
+  .event-type-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+  .ics-drop-zone {
+    border: 2px dashed var(--border2); border-radius: var(--radius-lg); padding: 32px;
+    text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 16px;
+  }
+  .ics-drop-zone:hover, .ics-drop-zone.drag-over { border-color: var(--green); background: var(--green-glow); }
+  .ics-drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .ics-drop-label { font-size: 14px; color: var(--text2); }
+  .ics-drop-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  /* TOAST */
+  #toast-container { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast {
+    display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+    background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius);
+    font-size: 13px; color: var(--text); min-width: 240px; max-width: 340px;
+    animation: toastIn 0.25s ease; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    pointer-events: all;
+  }
+  .toast.out { animation: toastOut 0.3s ease forwards; }
+  .toast-icon { font-size: 16px; flex-shrink: 0; }
+  .toast-msg { flex: 1; line-height: 1.4; }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.info { border-left: 3px solid var(--blue); }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(8px); } }
+
+  /* DATA CARD */
+  .data-action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .data-preview {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2);
+    line-height: 1.6; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+    display: none;
+  }
+  .data-preview.visible { display: block; }
+  .data-stat { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text3); }
+  .data-stat strong { color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- RIGHT-CLICK CONTEXT MENU -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-rename" onclick="ctxRename()">✎ &nbsp;Rename</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-delete" onclick="ctxDelete()">✕ &nbsp;Delete Pillar</div>
+</div>
+
+<!-- HIDDEN FILE INPUT FOR IMPORT -->
+<input type="file" id="import-file-input" accept=".json" style="display:none" onchange="handleImportFile(event)">
+<input type="file" id="ics-file-input" accept=".ics,.ical" style="display:none" onchange="handleICSFile(event)">
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="logo">BLUEPRINT</div>
+    <div class="sub">Pro Contract Tracker</div>
+  </div>
+  <div class="nav-section-label">Overview</div>
+  <button class="nav-item active" onclick="showPage('dashboard')">
+    <span class="icon">⚽</span><span>Dashboard</span>
+  </button>
+  <div class="nav-section-label">Pillars</div>
+  <div id="pillar-nav"></div>
+  <button class="nav-add-pillar" onclick="openAddPillarModal()">+ Add New Pillar</button>
+  <div class="nav-section-label">Planning</div>
+  <button class="nav-item" onclick="showPage('todo')">
+    <span class="icon">✅</span><span>Daily To-Do</span>
+  </button>
+  <button class="nav-item" onclick="showPage('calendar')">
+    <span class="icon">📅</span><span>Calendar</span>
+  </button>
+  <button class="nav-item" onclick="showPage('goals')">
+    <span class="icon">🎯</span><span>Goals</span>
+  </button>
+  <button class="nav-item" onclick="showPage('journal')">
+    <span class="icon">📓</span><span>Journal</span>
+  </button>
+  <button class="nav-item" onclick="showPage('settings')">
+    <span class="icon">⚙️</span><span>Settings</span>
+  </button>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1 class="page-title">Pro Contract Blueprint</h1>
+      <p class="page-subtitle">Track your journey from semi-pro to professional.</p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card" style="padding:24px">
+        <div class="card-title">Contract Readiness</div>
+        <div class="readiness-wrap">
+          <div class="ring-container">
+            <svg class="ring-svg" width="140" height="140" viewBox="0 0 140 140">
+              <circle class="ring-bg" cx="70" cy="70" r="58"/>
+              <circle class="ring-fg" id="ring-fg" cx="70" cy="70" r="58"
+                stroke-dasharray="364.4" stroke-dashoffset="364.4" stroke="var(--green)"/>
+            </svg>
+            <div class="ring-label">
+              <div class="ring-pct" id="dash-pct">0%</div>
+              <div class="ring-text">Ready</div>
+            </div>
+          </div>
+          <div style="flex:1" id="pillar-bars"></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:24px">
+        <div class="card-title">At a Glance</div>
+        <div class="grid-2" id="glance-stats"></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div class="section-header">
+        <div class="card-title" style="margin:0">Pillar Breakdown</div>
+        <button class="btn btn-ghost" style="font-size:12px" onclick="showPage('settings')">⚙ Customize</button>
+      </div>
+      <div id="pillar-breakdown" class="grid-3"></div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div class="card-title">Recent Journal</div>
+      <div id="dash-journal"></div>
+      <button class="btn btn-ghost" style="font-size:13px;margin-top:10px" onclick="showPage('journal')">View all entries →</button>
+    </div>
+  </div>
+
+  <!-- PILLAR PAGES (generated) -->
+  <div id="pillar-pages"></div>
+
+  <!-- DAILY TO-DO -->
+  <div class="page" id="page-todo">
+    <div class="page-header">
+      <h1 class="page-title">Daily To-Do</h1>
+      <p class="page-subtitle" id="todo-date-subtitle"></p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:20px;gap:16px">
+      <div class="card" style="padding:20px 24px">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Focus Pillar</div>
+        <div class="todo-pillar-tabs" id="todo-pillar-tabs"></div>
+      </div>
+      <div class="card" style="padding:20px 24px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Today's Progress</div>
+        <div class="todo-progress-bar"><div class="todo-progress-fill" id="todo-progress-fill" style="width:0%;background:var(--green)"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--text2)" id="todo-progress-label">0 of 0 tasks done</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--green)" id="todo-progress-pct">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div class="todo-input-row">
+        <input type="text" id="todo-new-task" placeholder="Add a task for today…" onkeydown="if(event.key==='Enter')confirmAddTodo()">
+        <button class="btn btn-primary" onclick="confirmAddTodo()">+ Add</button>
+      </div>
+      <div id="todo-list"></div>
+    </div>
+
+    <div class="card" style="padding:24px;margin-top:4px">
+      <div class="section-header" style="margin-bottom:12px">
+        <div class="card-title" style="margin:0">Past Days</div>
+        <button class="btn btn-ghost" style="font-size:12px" onclick="clearCompletedTodos()">Clear completed</button>
+      </div>
+      <div id="todo-history"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="page" id="page-calendar">
+    <div class="page-header">
+      <h1 class="page-title">Calendar</h1>
+      <p class="page-subtitle">Matches, training sessions, trials, and rest days — all in one view.</p>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" onclick="openAddEventModal()">+ Add Event</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('ics-file-input').click()">⬆ Import .ics Calendar</button>
+      <select id="cal-type-filter" onchange="renderCalendar()" style="width:auto;padding:8px 14px;margin-left:auto">
+        <option value="all">All Types</option>
+        <option value="match">Matches</option>
+        <option value="training">Training</option>
+        <option value="trial">Trials</option>
+        <option value="rest">Rest</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:16px">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <button class="cal-nav-btn" onclick="calNextMonth()">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card" style="padding:24px">
+        <div class="card-title">Upcoming Events</div>
+        <div id="upcoming-events-list"></div>
+      </div>
+      <div class="card" style="padding:24px">
+        <div class="card-title">Import Calendar</div>
+        <div class="ics-drop-zone" id="ics-drop-zone" onclick="document.getElementById('ics-file-input').click()">
+          <div class="ics-drop-icon">📂</div>
+          <div class="ics-drop-label">Drop your .ics file here or click to browse</div>
+          <div class="ics-drop-sub">Supports Google Calendar, Apple Calendar, Outlook exports</div>
+        </div>
+        <div id="ics-import-stats" style="display:none" class="card" style="padding:14px">
+          <div style="font-size:13px;color:var(--text2)" id="ics-stats-text"></div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em">How to export your calendar</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8">
+            <strong style="color:var(--text)">Google Calendar:</strong> Settings → Import &amp; Export → Export<br>
+            <strong style="color:var(--text)">Apple Calendar:</strong> File → Export → Export…<br>
+            <strong style="color:var(--text)">Outlook:</strong> File → Open &amp; Export → Import/Export → Export to file
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOALS -->
+  <div class="page" id="page-goals">
+    <div class="page-header">
+      <h1 class="page-title">Goals & Milestones</h1>
+      <p class="page-subtitle">Set targets and track your progress toward going pro.</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="openGoalModal()">+ Add Goal</button>
+      <select id="goal-filter" onchange="renderGoals()" style="width:auto;padding:8px 14px">
+        <option value="all">All Categories</option>
+      </select>
+      <select id="goal-status-filter" onchange="renderGoals()" style="width:auto;padding:8px 14px">
+        <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="done">Completed</option>
+      </select>
+    </div>
+    <div id="goals-list"></div>
+    <div class="card" style="padding:24px;margin-top:8px">
+      <div class="card-title">Milestones Timeline</div>
+      <div class="timeline" id="milestone-timeline"></div>
+    </div>
+  </div>
+
+  <!-- JOURNAL -->
+  <div class="page" id="page-journal">
+    <div class="page-header">
+      <h1 class="page-title">Training Journal</h1>
+      <p class="page-subtitle">Log your sessions, reflections, and breakthroughs.</p>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <button class="btn btn-primary" onclick="openJournalModal()">+ New Entry</button>
+    </div>
+    <div id="journal-list"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <h1 class="page-title">Settings & Customization</h1>
+      <p class="page-subtitle">Personalize your blueprint to match your journey.</p>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:16px">
+      <div class="section-header">
+        <div class="card-title" style="margin:0">Player Profile</div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" id="player-name" placeholder="Your name" value="">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Club / League</label>
+          <input type="text" id="target-club" placeholder="e.g. USL Championship, MLS">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Position</label>
+          <select id="player-position">
+            <option>Goalkeeper</option><option>Centre-Back</option><option>Full-Back</option>
+            <option>Defensive Midfielder</option><option>Central Midfielder</option>
+            <option>Attacking Midfielder</option><option>Winger</option><option selected>Striker</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Date</label>
+          <input type="date" id="target-date">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:16px">
+      <div class="section-header">
+        <div class="card-title" style="margin:0">Pillar Weights</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Adjust how much each pillar contributes to your overall readiness score.</p>
+      <div id="weight-controls"></div>
+      <button class="btn btn-primary" style="margin-top:8px" onclick="saveWeights()">Apply Weights</button>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <div class="section-header">
+        <div class="card-title" style="margin:0">Manage Pillars</div>
+      </div>
+      <div id="settings-pillars"></div>
+    </div>
+
+    <div class="card" style="padding:24px;margin-top:16px">
+      <div class="section-header" style="margin-bottom:6px">
+        <div class="card-title" style="margin:0">Data & Backup</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:18px">Export your full blueprint as a JSON file to back it up or move it to another device. Import a previously saved file to restore everything instantly.</p>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px" id="data-stats-row"></div>
+
+      <div class="data-action-row">
+        <button class="btn btn-primary" onclick="exportData()">⬇ Export JSON</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('import-file-input').click()">⬆ Import JSON</button>
+        <button class="btn btn-ghost" onclick="copyDataToClipboard()">⎘ Copy to Clipboard</button>
+        <button class="btn btn-danger" onclick="resetToDefaults()">↺ Reset to Defaults</button>
+      </div>
+
+      <div class="data-preview" id="data-preview-box"></div>
+      <div id="import-feedback"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-metric">
+  <div class="modal">
+    <div class="modal-title" id="modal-metric-title">Add Metric</div>
+    <div class="form-group">
+      <label class="form-label">Metric Name</label>
+      <input type="text" id="new-metric-name" placeholder="e.g. Sprint Speed, Vision...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-metric')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddMetric()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-goal">
+  <div class="modal">
+    <div class="modal-title">Add Goal</div>
+    <div class="form-group">
+      <label class="form-label">Goal Title</label>
+      <input type="text" id="new-goal-title" placeholder="e.g. Run 5km in under 21 minutes">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select id="new-goal-cat"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Target Date</label>
+      <input type="date" id="new-goal-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea id="new-goal-notes" placeholder="Why this goal matters..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-goal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddGoal()">Add Goal</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-journal">
+  <div class="modal">
+    <div class="modal-title">New Journal Entry</div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input type="date" id="new-journal-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Entry</label>
+      <textarea id="new-journal-text" style="min-height:120px" placeholder="What did you work on today? Breakthroughs, struggles, observations..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Session Mood</label>
+      <select id="new-journal-mood">
+        <option value="great">🔥 Great — top performance</option>
+        <option value="good">✅ Good — solid session</option>
+        <option value="okay">😐 Okay — average day</option>
+        <option value="rough">⚡ Rough — need to reset</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-journal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddJournal()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-event">
+  <div class="modal">
+    <div class="modal-title" id="modal-event-title">Add Event</div>
+    <div class="form-group">
+      <label class="form-label">Event Title</label>
+      <input type="text" id="new-event-title" placeholder="e.g. vs. FC United, Morning Training...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select id="new-event-type">
+        <option value="match">⚽ Match</option>
+        <option value="training">🏃 Training</option>
+        <option value="trial">🔍 Trial</option>
+        <option value="rest">😴 Rest Day</option>
+        <option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="grid-2" style="gap:10px">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="new-event-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time (optional)</label>
+        <input type="text" id="new-event-time" placeholder="e.g. 14:00">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location (optional)</label>
+      <input type="text" id="new-event-location" placeholder="e.g. Home ground, Training pitch B">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea id="new-event-notes" placeholder="Opponent, objectives, kit required..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-event')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-event-detail">
+  <div class="modal">
+    <div id="event-detail-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="event-detail-delete">Delete Event</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-event-detail')">Close</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-add-pillar">
+  <div class="modal">
+    <div class="modal-title">Add New Pillar</div>
+    <div class="form-group">
+      <label class="form-label">Pillar Name</label>
+      <input type="text" id="new-pillar-name" placeholder="e.g. Leadership, Set Pieces...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Color Accent</label>
+      <select id="new-pillar-color">
+        <option value="#00E676">Green</option>
+        <option value="#40C4FF">Blue</option>
+        <option value="#CE93D8">Purple</option>
+        <option value="#FFB300">Amber</option>
+        <option value="#FF7043">Orange</option>
+        <option value="#F06292">Pink</option>
+        <option value="#A5D6A7">Mint</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-pillar')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddPillar()">Add Pillar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-rename">
+  <div class="modal">
+    <div class="modal-title">Rename</div>
+    <div class="form-group">
+      <label class="form-label">New Name</label>
+      <input type="text" id="rename-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rename')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRename()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const DEFAULT_STATE = {
+  profile: { name: '', position: 'Striker', targetClub: '', targetDate: '' },
+  pillars: [
+    {
+      id:'physical', name:'Physical', color:'#00E676', weight:25,
+      metrics:[
+        {id:'m1',name:'Sprint Speed',val:2},
+        {id:'m2',name:'Stamina / VO2',val:5},
+        {id:'m3',name:'Strength & Power',val:2},
+        {id:'m4',name:'Agility',val:7},
+        {id:'m5',name:'Injury Resilience',val:7}
+      ]
+    },
+    {
+      id:'mental', name:'Mental', color:'#CE93D8', weight:20,
+      metrics:[
+        {id:'m6',name:'Focus & Concentration',val:5},
+        {id:'m7',name:'Confidence',val:5},
+        {id:'m8',name:'Emotional Regulation',val:5},
+        {id:'m9',name:'Leadership & Communication',val:5},
+        {id:'m10',name:'Resilience After Mistakes',val:5},
+        {id:'m11',name:'Game Intelligence (IQ)',val:5},
+        {id:'m29',name:'Motivation & Commitment',val:5}
+      ]
+    },
+    {
+      id:'technique', name:'Technique', color:'#40C4FF', weight:25,
+      metrics:[
+        {id:'m12',name:'First Touch',val:8},
+        {id:'m13',name:'Passing',val:7},
+        {id:'m14',name:'Shooting & Finishing',val:7},
+        {id:'m15',name:'Ball Mastery (Dribbling)',val:7},
+        {id:'m16',name:'Weak Foot',val:5},
+        {id:'m30',name:'Tackling & Defending',val:5}
+      ]
+    },
+    {
+      id:'tactical', name:'Tactical', color:'#FFB300', weight:15,
+      metrics:[
+        {id:'m17',name:'Positional & Spatial Awareness',val:7},
+        {id:'m18',name:'Press Resistance',val:2},
+        {id:'m19',name:'Off-Ball Movement',val:8},
+        {id:'m20',name:'Set Pieces',val:2},
+        {id:'m21',name:'Decision-Making',val:7}
+      ]
+    },
+    {
+      id:'recovery', name:'Recovery', color:'#FF7043', weight:10,
+      metrics:[
+        {id:'m22',name:'Sleep Quality',val:2},
+        {id:'m23',name:'Nutrition & Hydration',val:2},
+        {id:'m24',name:'Active Recovery',val:5},
+        {id:'m25',name:'Body Maintenance',val:2}
+      ]
+    },
+    {
+      id:'brand', name:'Brand & Profile', color:'#F06292', weight:5,
+      metrics:[
+        {id:'m26',name:'Highlight Reel',val:4},
+        {id:'m27',name:'Agent / Representation',val:3},
+        {id:'m28',name:'Social Presence',val:5},
+        {id:'m31',name:'Trial Readiness',val:2}
+      ]
+    }
+  ],
+  goals: [
+    {id:'g1',title:'Run 5km in under 21 minutes',cat:'physical',date:'2025-03-01',notes:'Key fitness benchmark',done:false},
+    {id:'g2',title:'Complete 3 trial sessions',cat:'brand',date:'2025-05-01',notes:'Contact 5 clubs',done:false},
+    {id:'g3',title:'Score 15 goals this season',cat:'technique',date:'2025-06-30',notes:'League & Cup combined',done:true}
+  ],
+  journal: [
+    {id:'j1',date:'2025-01-10',text:'Focused on weak foot finishing today. 200 reps on left foot. Seeing improvement in placement but power still lacking.',mood:'good'},
+    {id:'j2',date:'2025-01-08',text:'Brutal endurance session. Hit a wall at minute 55 but pushed through. Mental toughness is where I need to grow.',mood:'rough'}
+  ],
+  events: [
+    {id:'e1',title:'Pre-season Training Block',type:'training',date:'2026-04-01',time:'09:00',location:'Training Ground',notes:'Full squad'},
+    {id:'e2',title:'vs. City Athletic FC',type:'match',date:'2026-04-05',time:'15:00',location:'Home Ground',notes:'League fixture'},
+    {id:'e3',title:'Trial — Westbridge FC',type:'trial',date:'2026-04-12',time:'10:00',location:'Westbridge Stadium',notes:'Bring highlight reel USB'}
+  ],
+  todos: []
+};
+
+let STATE = JSON.parse(localStorage.getItem('blueprint_v2') || 'null') || JSON.parse(JSON.stringify(DEFAULT_STATE));
+if (!STATE.events) STATE.events = JSON.parse(JSON.stringify(DEFAULT_STATE.events));
+if (!STATE.todos) STATE.todos = [];
+let _activeMetricPillar = null;
+let _renameTarget = null;
+let _calYear = new Date().getFullYear();
+let _calMonth = new Date().getMonth();
+let _editingEventId = null;
+
+function save() { localStorage.setItem('blueprint_v2', JSON.stringify(STATE)); }
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + id + "'")) {
+      btn.classList.add('active');
+    }
+  });
+  if (id === 'settings') renderSettings();
+  if (id === 'goals') renderGoals();
+  if (id === 'journal') renderJournal();
+  if (id === 'calendar') renderCalendar();
+  if (id === 'todo') renderTodo();
+}
+
+// ─── COMPUTED ────────────────────────────────────────────────────────────────
+function pillarScore(pillar) {
+  if (!pillar.metrics.length) return 0;
+  const avg = pillar.metrics.reduce((s,m) => s + m.val, 0) / pillar.metrics.length;
+  return Math.round(avg * 10);
+}
+
+function overallScore() {
+  const totalWeight = STATE.pillars.reduce((s,p) => s + (p.weight||0), 0);
+  if (!totalWeight) return 0;
+  const weighted = STATE.pillars.reduce((s,p) => s + (pillarScore(p)/100) * (p.weight||0), 0);
+  return Math.round(weighted / totalWeight * 100);
+}
+
+function scoreColor(pct) {
+  if (pct >= 75) return 'var(--green)';
+  if (pct >= 50) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+// ─── SIDEBAR NAV PILLARS ─────────────────────────────────────────────────────
+function renderNav() {
+  const nav = document.getElementById('pillar-nav');
+  nav.innerHTML = STATE.pillars.map(p => {
+    const sc = pillarScore(p);
+    return `<button class="nav-item" onclick="showPage('pillar-${p.id}')"
+      oncontextmenu="openCtxMenu(event,'${p.id}')">
+      <span class="icon" style="color:${p.color}">●</span>
+      <span>${p.name}</span>
+      <span class="score-badge">${sc}</span>
+    </button>`;
+  }).join('');
+}
+
+// ─── PILLAR PAGES ─────────────────────────────────────────────────────────────
+function renderPillarPages() {
+  const container = document.getElementById('pillar-pages');
+  container.innerHTML = STATE.pillars.map(p => `
+    <div class="page" id="page-pillar-${p.id}">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:0">
+          <span style="display:inline-block;width:5px;height:36px;border-radius:3px;background:${p.color};margin-right:14px"></span>
+          <div>
+            <h1 class="page-title editable-title" onclick="openRename('pillar','${p.id}')" title="Click to rename">${p.name}</h1>
+            <p class="page-subtitle">Score: <strong style="color:${p.color}">${pillarScore(p)}/100</strong> · Click title to rename · <span style="color:var(--text3)">Weight: ${p.weight}%</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:20px" id="pillar-stats-${p.id}"></div>
+
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin:0">Metrics</div>
+          <button class="btn btn-primary" style="font-size:13px" onclick="openAddMetric('${p.id}')">+ Add Metric</button>
+        </div>
+        <div id="metrics-list-${p.id}"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;padding:24px">
+        <div class="card-title">Notes for this Pillar</div>
+        <textarea id="pillar-notes-${p.id}" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px;color:var(--text);font-size:14px;min-height:80px;resize:vertical"
+          placeholder="Coaching feedback, personal observations, focus areas..."
+          onchange="savePillarNotes('${p.id}',this.value)">${p.notes||''}</textarea>
+      </div>
+    </div>
+  `).join('');
+  STATE.pillars.forEach(p => {
+    renderMetrics(p.id);
+    renderPillarStats(p.id);
+  });
+}
+
+function renderMetrics(pid) {
+  const p = STATE.pillars.find(x => x.id === pid);
+  if (!p) return;
+  const el = document.getElementById('metrics-list-' + pid);
+  if (!el) return;
+  if (!p.metrics.length) { el.innerHTML = '<p style="color:var(--text3);font-size:14px;padding:12px 0">No metrics yet. Add one above.</p>'; return; }
+  el.innerHTML = p.metrics.map(m => {
+    const col = scoreColor(m.val * 10);
+    return `<div class="metric-row" id="mrow-${m.id}">
+      <span class="metric-name editable-title" onclick="openRename('metric','${m.id}','${pid}')" title="Click to rename">${m.name}</span>
+      <div class="metric-slider">
+        <input type="range" min="1" max="10" step="1" value="${m.val}"
+          oninput="updateMetricVal('${pid}','${m.id}',this.value)" style="accent-color:${p.color}">
+      </div>
+      <span class="metric-val" id="mval-${m.id}" style="color:${col}">${m.val}</span>
+      <div class="metric-actions">
+        <button class="btn-icon danger" onclick="deleteMetric('${pid}','${m.id}')" title="Delete">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPillarStats(pid) {
+  const p = STATE.pillars.find(x => x.id === pid);
+  const el = document.getElementById('pillar-stats-' + pid);
+  if (!p || !el) return;
+  const sc = pillarScore(p);
+  const best = p.metrics.length ? p.metrics.reduce((a,b) => a.val>b.val?a:b) : null;
+  const worst = p.metrics.length ? p.metrics.reduce((a,b) => a.val<b.val?a:b) : null;
+  el.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Pillar Score</div><div class="stat-value" style="color:${p.color}">${sc}</div><div class="stat-sub">out of 100</div></div>
+    <div class="stat-card"><div class="stat-label">Metrics</div><div class="stat-value">${p.metrics.length}</div><div class="stat-sub">tracked</div></div>
+    <div class="stat-card"><div class="stat-label">Strongest</div><div class="stat-value" style="color:var(--green)">${best?best.val:'–'}</div><div class="stat-sub">${best?best.name:'–'}</div></div>
+    <div class="stat-card"><div class="stat-label">Weakest</div><div class="stat-value" style="color:var(--red)">${worst?worst.val:'–'}</div><div class="stat-sub">${worst?worst.name:'–'}</div></div>
+  `;
+}
+
+function updateMetricVal(pid, mid, val) {
+  const p = STATE.pillars.find(x => x.id === pid);
+  const m = p && p.metrics.find(x => x.id === mid);
+  if (!m) return;
+  m.val = parseInt(val);
+  const col = scoreColor(m.val * 10);
+  const el = document.getElementById('mval-' + mid);
+  if (el) { el.textContent = val; el.style.color = col; }
+  save();
+  renderDashboard();
+  renderNav();
+  renderPillarStats(pid);
+}
+
+function savePillarNotes(pid, val) {
+  const p = STATE.pillars.find(x => x.id === pid);
+  if (p) { p.notes = val; save(); }
+}
+
+function deleteMetric(pid, mid) {
+  const p = STATE.pillars.find(x => x.id === pid);
+  if (!p) return;
+  p.metrics = p.metrics.filter(m => m.id !== mid);
+  save(); renderMetrics(pid); renderPillarStats(pid); renderDashboard(); renderNav();
+}
+
+// ─── ADD METRIC MODAL ────────────────────────────────────────────────────────
+function openAddMetric(pid) {
+  _activeMetricPillar = pid;
+  document.getElementById('new-metric-name').value = '';
+  document.getElementById('modal-metric-title').textContent = 'Add Metric to ' + STATE.pillars.find(p=>p.id===pid)?.name;
+  document.getElementById('modal-metric').classList.add('open');
+  setTimeout(() => document.getElementById('new-metric-name').focus(), 50);
+}
+function confirmAddMetric() {
+  const name = document.getElementById('new-metric-name').value.trim();
+  if (!name) return;
+  const p = STATE.pillars.find(x => x.id === _activeMetricPillar);
+  if (!p) return;
+  const id = 'm' + Date.now();
+  p.metrics.push({ id, name, val: 5 });
+  save(); closeModal('modal-metric');
+  renderMetrics(p.id); renderPillarStats(p.id); renderDashboard(); renderNav();
+}
+
+// ─── RENAME MODAL ────────────────────────────────────────────────────────────
+function openRename(type, id, pid) {
+  _renameTarget = { type, id, pid };
+  let current = '';
+  if (type === 'pillar') { const p = STATE.pillars.find(x=>x.id===id); current = p?.name||''; }
+  if (type === 'metric') {
+    const p = STATE.pillars.find(x=>x.id===pid);
+    const m = p?.metrics.find(x=>x.id===id);
+    current = m?.name||'';
+  }
+  document.getElementById('rename-input').value = current;
+  document.getElementById('modal-rename').classList.add('open');
+  setTimeout(() => document.getElementById('rename-input').select(), 50);
+}
+function confirmRename() {
+  const val = document.getElementById('rename-input').value.trim();
+  if (!val) return;
+  const { type, id, pid } = _renameTarget;
+  if (type === 'pillar') {
+    const p = STATE.pillars.find(x=>x.id===id);
+    if (p) { p.name = val; save(); renderAll(); }
+  }
+  if (type === 'metric') {
+    const p = STATE.pillars.find(x=>x.id===pid);
+    const m = p?.metrics.find(x=>x.id===id);
+    if (m) { m.name = val; save(); renderMetrics(pid); renderPillarStats(pid); renderDashboard(); }
+  }
+  closeModal('modal-rename');
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const score = overallScore();
+  const pct = document.getElementById('dash-pct');
+  if (pct) pct.textContent = score + '%';
+  if (pct) pct.style.color = scoreColor(score);
+  const circ = 2 * Math.PI * 58;
+  const offset = circ - (score / 100) * circ;
+  const fg = document.getElementById('ring-fg');
+  if (fg) { fg.style.strokeDashoffset = offset; fg.style.stroke = scoreColor(score); }
+
+  const barsEl = document.getElementById('pillar-bars');
+  if (barsEl) {
+    barsEl.innerHTML = STATE.pillars.map(p => {
+      const sc = pillarScore(p);
+      return `<div class="pillar-bar-row">
+        <span class="pillar-bar-label">${p.name}</span>
+        <div class="pillar-bar-track"><div class="pillar-bar-fill" style="width:${sc}%;background:${p.color}"></div></div>
+        <span class="pillar-bar-val" style="color:${p.color}">${sc}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const glance = document.getElementById('glance-stats');
+  if (glance) {
+    const profile = STATE.profile;
+    const daysLeft = profile.targetDate ? Math.max(0, Math.ceil((new Date(profile.targetDate)-new Date())/(1000*60*60*24))) : '–';
+    const topPillar = STATE.pillars.length ? STATE.pillars.reduce((a,b) => pillarScore(a)>pillarScore(b)?a:b) : null;
+    const weakPillar = STATE.pillars.length ? STATE.pillars.reduce((a,b) => pillarScore(a)<pillarScore(b)?a:b) : null;
+    const pendingGoals = STATE.goals.filter(g=>!g.done).length;
+    glance.innerHTML = `
+      <div class="stat-card"><div class="stat-label">Days to Target</div><div class="stat-value" style="color:var(--green)">${daysLeft}</div><div class="stat-sub">${profile.targetDate||'Set in settings'}</div></div>
+      <div class="stat-card"><div class="stat-label">Top Pillar</div><div class="stat-value" style="font-size:22px;color:${topPillar?.color||'var(--text)'}">${topPillar?.name||'–'}</div><div class="stat-sub">${topPillar?pillarScore(topPillar)+'/100':''}</div></div>
+      <div class="stat-card"><div class="stat-label">Needs Work</div><div class="stat-value" style="font-size:22px;color:var(--red)">${weakPillar?.name||'–'}</div><div class="stat-sub">${weakPillar?pillarScore(weakPillar)+'/100':''}</div></div>
+      <div class="stat-card"><div class="stat-label">Active Goals</div><div class="stat-value">${pendingGoals}</div><div class="stat-sub">pending</div></div>
+    `;
+  }
+
+  const breakdown = document.getElementById('pillar-breakdown');
+  if (breakdown) {
+    breakdown.innerHTML = STATE.pillars.map(p => {
+      const sc = pillarScore(p);
+      return `<div class="stat-card" style="cursor:pointer" onclick="showPage('pillar-${p.id}')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em">${p.name}</span>
+          <span style="font-size:11px;color:${p.color};background:rgba(0,0,0,0.3);padding:2px 7px;border-radius:20px">${p.weight}%</span>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:800;line-height:1;color:${p.color}">${sc}</div>
+        <div style="margin-top:8px;height:3px;background:var(--surface3);border-radius:2px">
+          <div style="width:${sc}%;height:100%;background:${p.color};border-radius:2px;transition:width 0.4s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">${p.metrics.length} metrics · click to edit</div>
+      </div>`;
+    }).join('');
+  }
+
+  const dashJournal = document.getElementById('dash-journal');
+  if (dashJournal) {
+    const recent = [...STATE.journal].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,2);
+    if (!recent.length) { dashJournal.innerHTML = '<p style="color:var(--text3);font-size:14px">No journal entries yet.</p>'; return; }
+    dashJournal.innerHTML = recent.map(j => {
+      const moodMap = {great:'mood-great',good:'mood-good',okay:'mood-okay',rough:'mood-rough'};
+      return `<div class="journal-entry">
+        <div class="journal-date">${j.date}</div>
+        <div class="journal-content">${j.text.length>180?j.text.slice(0,177)+'...':j.text}</div>
+        <span class="journal-mood ${moodMap[j.mood]||'mood-good'}">${j.mood}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── GOALS ───────────────────────────────────────────────────────────────────
+function renderGoals() {
+  const catFilter = document.getElementById('goal-filter');
+  if (catFilter) {
+    const cats = ['all', ...STATE.pillars.map(p => p.id)];
+    catFilter.innerHTML = cats.map(c => `<option value="${c}">${c==='all'?'All Categories':STATE.pillars.find(p=>p.id===c)?.name||c}</option>`).join('');
+  }
+  const filterCat = catFilter?.value || 'all';
+  const filterStatus = document.getElementById('goal-status-filter')?.value || 'all';
+  let goals = [...STATE.goals].sort((a,b)=>a.date.localeCompare(b.date));
+  if (filterCat !== 'all') goals = goals.filter(g=>g.cat===filterCat);
+  if (filterStatus === 'pending') goals = goals.filter(g=>!g.done);
+  if (filterStatus === 'done') goals = goals.filter(g=>g.done);
+  const el = document.getElementById('goals-list');
+  if (!el) return;
+  if (!goals.length) { el.innerHTML = '<p style="color:var(--text3);font-size:14px;padding:12px 0">No goals found.</p>'; return; }
+  const pillarMap = {};
+  STATE.pillars.forEach(p => pillarMap[p.id] = p);
+  el.innerHTML = goals.map(g => {
+    const pillar = pillarMap[g.cat];
+    const color = pillar?.color || 'var(--text2)';
+    return `<div class="goal-item">
+      <div class="goal-checkbox ${g.done?'done':''}" onclick="toggleGoal('${g.id}')"></div>
+      <div class="goal-text">
+        <div class="goal-title ${g.done?'done':''}">${g.title}</div>
+        ${g.notes?`<div class="goal-meta">${g.notes}</div>`:''}
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+          ${pillar?`<span class="pillar-tag" style="color:${color};border-color:${color};opacity:1">${pillar.name}</span>`:''}
+          ${g.date?`<span style="font-size:11px;color:var(--text3)">🗓 ${g.date}</span>`:''}
+        </div>
+      </div>
+      <button class="btn-icon danger" onclick="deleteGoal('${g.id}')" title="Delete">✕</button>
+    </div>`;
+  }).join('');
+
+  const tl = document.getElementById('milestone-timeline');
+  if (tl) {
+    const all = [...STATE.goals].sort((a,b)=>a.date.localeCompare(b.date));
+    tl.innerHTML = all.map(g => `<div class="timeline-item">
+      <div class="timeline-dot ${g.done?'':'pending'}"></div>
+      <div class="timeline-date">${g.date}</div>
+      <div class="timeline-text" style="${g.done?'text-decoration:line-through;opacity:0.5':''}">${g.title}</div>
+    </div>`).join('') || '<p style="color:var(--text3);font-size:14px">No milestones yet.</p>';
+  }
+}
+function toggleGoal(id) {
+  const g = STATE.goals.find(x=>x.id===id);
+  if (g) { g.done = !g.done; save(); renderGoals(); renderDashboard(); }
+}
+function deleteGoal(id) {
+  STATE.goals = STATE.goals.filter(x=>x.id!==id);
+  save(); renderGoals(); renderDashboard();
+}
+function openGoalModal() {
+  document.getElementById('new-goal-title').value = '';
+  document.getElementById('new-goal-notes').value = '';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('new-goal-date').value = today;
+  const sel = document.getElementById('new-goal-cat');
+  sel.innerHTML = STATE.pillars.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('modal-goal').classList.add('open');
+}
+function confirmAddGoal() {
+  const title = document.getElementById('new-goal-title').value.trim();
+  if (!title) return;
+  STATE.goals.push({
+    id:'g'+Date.now(),
+    title,
+    cat: document.getElementById('new-goal-cat').value,
+    date: document.getElementById('new-goal-date').value,
+    notes: document.getElementById('new-goal-notes').value.trim(),
+    done: false
+  });
+  save(); closeModal('modal-goal'); renderGoals(); renderDashboard();
+}
+
+// ─── JOURNAL ─────────────────────────────────────────────────────────────────
+function renderJournal() {
+  const el = document.getElementById('journal-list');
+  if (!el) return;
+  const entries = [...STATE.journal].sort((a,b)=>b.date.localeCompare(a.date));
+  const moodMap = {great:'mood-great',good:'mood-good',okay:'mood-okay',rough:'mood-rough'};
+  const moodEmoji = {great:'🔥',good:'✅',okay:'😐',rough:'⚡'};
+  if (!entries.length) { el.innerHTML = '<p style="color:var(--text3);font-size:14px">No entries yet. Start logging!</p>'; return; }
+  el.innerHTML = entries.map(j => `<div class="journal-entry">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="journal-date">${j.date}</div>
+      <button class="btn-icon danger" onclick="deleteJournal('${j.id}')">✕</button>
+    </div>
+    <div class="journal-content" style="margin-top:6px">${j.text}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+      <span class="journal-mood ${moodMap[j.mood]||'mood-good'}">${moodEmoji[j.mood]||''} ${j.mood}</span>
+    </div>
+  </div>`).join('');
+}
+function openJournalModal() {
+  document.getElementById('new-journal-text').value = '';
+  document.getElementById('new-journal-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-journal').classList.add('open');
+}
+function confirmAddJournal() {
+  const text = document.getElementById('new-journal-text').value.trim();
+  if (!text) return;
+  STATE.journal.push({
+    id:'j'+Date.now(),
+    date: document.getElementById('new-journal-date').value,
+    text,
+    mood: document.getElementById('new-journal-mood').value
+  });
+  save(); closeModal('modal-journal'); renderJournal(); renderDashboard();
+}
+function deleteJournal(id) {
+  STATE.journal = STATE.journal.filter(x=>x.id!==id);
+  save(); renderJournal(); renderDashboard();
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg, type='info', duration=3000) {
+  const icons = { success:'✓', error:'✕', info:'ℹ' };
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ'}</span><span class="toast-msg">${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 320);
+  }, duration);
+}
+
+// ─── EXPORT / IMPORT ─────────────────────────────────────────────────────────
+function exportData() {
+  const json = JSON.stringify(STATE, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url; a.download = `blueprint-${date}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Blueprint exported successfully!', 'success');
+  showDataPreview(json);
+}
+
+function copyDataToClipboard() {
+  const json = JSON.stringify(STATE, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    toast('Copied to clipboard!', 'success');
+    showDataPreview(json);
+  }).catch(() => toast('Clipboard access denied — try Export instead.', 'error'));
+}
+
+function showDataPreview(json) {
+  const box = document.getElementById('data-preview-box');
+  if (!box) return;
+  const lines = json.split('\n').slice(0, 20).join('\n');
+  box.textContent = lines + (json.split('\n').length > 20 ? '\n  ...' : '');
+  box.classList.add('visible');
+}
+
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!parsed.pillars || !parsed.goals || !parsed.journal) throw new Error('Invalid blueprint file');
+      STATE = parsed;
+      save(); renderAll();
+      if (document.getElementById('page-settings').classList.contains('active')) renderSettings();
+      toast(`Blueprint loaded from "${file.name}"`, 'success');
+      document.getElementById('import-file-input').value = '';
+    } catch(err) {
+      toast('Import failed — invalid or corrupt JSON file.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetToDefaults() {
+  if (!confirm('This will wipe all your data and restore the original defaults. Are you sure?')) return;
+  STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  save(); renderAll(); renderSettings();
+  toast('Reset to default blueprint.', 'info');
+}
+
+function renderDataStats() {
+  const el = document.getElementById('data-stats-row');
+  if (!el) return;
+  const totalMetrics = STATE.pillars.reduce((s,p) => s+p.metrics.length, 0);
+  const bytes = new Blob([JSON.stringify(STATE)]).size;
+  const kb = (bytes/1024).toFixed(1);
+  el.innerHTML = `
+    <span class="data-stat">📦 <strong>${STATE.pillars.length}</strong> pillars</span>
+    <span style="color:var(--border2)">·</span>
+    <span class="data-stat">📊 <strong>${totalMetrics}</strong> metrics</span>
+    <span style="color:var(--border2)">·</span>
+    <span class="data-stat">🎯 <strong>${STATE.goals.length}</strong> goals</span>
+    <span style="color:var(--border2)">·</span>
+    <span class="data-stat">📓 <strong>${STATE.journal.length}</strong> journal entries</span>
+    <span style="color:var(--border2)">·</span>
+    <span class="data-stat">💾 <strong>${kb} KB</strong></span>
+  `;
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function renderSettings() {
+  const profile = STATE.profile;
+  document.getElementById('player-name').value = profile.name||'';
+  document.getElementById('target-club').value = profile.targetClub||'';
+  document.getElementById('target-date').value = profile.targetDate||'';
+  const pos = document.getElementById('player-position');
+  if (pos) pos.value = profile.position||'Striker';
+  renderDataStats();
+
+  const wc = document.getElementById('weight-controls');
+  if (wc) {
+    wc.innerHTML = STATE.pillars.map(p => `<div class="weight-row">
+      <span class="weight-label" style="color:${p.color}">${p.name}</span>
+      <input type="range" min="0" max="50" step="5" value="${p.weight}" id="w-${p.id}"
+        oninput="document.getElementById('wval-${p.id}').textContent=this.value+'%'" style="flex:1;accent-color:${p.color}">
+      <span class="weight-val" id="wval-${p.id}">${p.weight}%</span>
+    </div>`).join('');
+  }
+
+  const sp = document.getElementById('settings-pillars');
+  if (sp) {
+    sp.innerHTML = STATE.pillars.map(p => `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <span style="width:12px;height:12px;border-radius:50%;background:${p.color};flex-shrink:0"></span>
+      <span style="flex:1;font-size:14px">${p.name}</span>
+      <span style="font-size:13px;color:var(--text3)">${p.metrics.length} metrics</span>
+      <button class="btn-icon" onclick="openRename('pillar','${p.id}')">✎ Rename</button>
+      <button class="btn-icon danger" onclick="deletePillar('${p.id}')">✕ Remove</button>
+    </div>`).join('');
+  }
+}
+function saveProfile() {
+  STATE.profile = {
+    name: document.getElementById('player-name').value,
+    position: document.getElementById('player-position').value,
+    targetClub: document.getElementById('target-club').value,
+    targetDate: document.getElementById('target-date').value
+  };
+  save(); renderDashboard();
+  toast('Profile saved!', 'success');
+}
+function saveWeights() {
+  STATE.pillars.forEach(p => {
+    const el = document.getElementById('w-'+p.id);
+    if (el) p.weight = parseInt(el.value);
+  });
+  save(); renderDashboard(); renderNav();
+  toast('Weights updated!', 'success');
+}
+function deletePillar(pid) {
+  if (!confirm('Remove this pillar and all its metrics?')) return;
+  STATE.pillars = STATE.pillars.filter(p=>p.id!==pid);
+  save(); renderAll();
+}
+function openAddPillarModal() {
+  document.getElementById('new-pillar-name').value = '';
+  document.getElementById('modal-add-pillar').classList.add('open');
+}
+function confirmAddPillar() {
+  const name = document.getElementById('new-pillar-name').value.trim();
+  if (!name) return;
+  const color = document.getElementById('new-pillar-color').value;
+  const id = 'p' + Date.now();
+  STATE.pillars.push({ id, name, color, weight: 10, metrics: [] });
+  save(); closeModal('modal-add-pillar'); renderAll(); renderSettings();
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(el=>el.classList.remove('open'));
+  if (e.key==='Enter') {
+    if (document.getElementById('modal-metric').classList.contains('open')) confirmAddMetric();
+    if (document.getElementById('modal-rename').classList.contains('open')) confirmRename();
+    if (document.getElementById('modal-add-pillar').classList.contains('open')) confirmAddPillar();
+  }
+});
+
+// ─── DAILY TO-DO ─────────────────────────────────────────────────────────────
+let _todoActivePillar = 'all';
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function renderTodo() {
+  // date subtitle
+  const sub = document.getElementById('todo-date-subtitle');
+  if (sub) {
+    const d = new Date();
+    sub.textContent = d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+
+  // pillar tabs
+  const tabs = document.getElementById('todo-pillar-tabs');
+  if (tabs) {
+    const allPillars = [{ id:'all', name:'All', color:'var(--text2)' }, ...STATE.pillars];
+    tabs.innerHTML = allPillars.map(p => {
+      const isActive = _todoActivePillar === p.id;
+      const bg = isActive ? p.color : 'none';
+      const txtCol = isActive ? '#0A0C0E' : 'var(--text2)';
+      const borderCol = isActive ? p.color : 'var(--border2)';
+      return `<button class="todo-pillar-tab${isActive?' active':''}"
+        style="background:${bg};color:${txtCol};border-color:${borderCol}"
+        onclick="setTodoPillar('${p.id}')">${p.name}</button>`;
+    }).join('');
+  }
+
+  renderTodoList();
+  renderTodoHistory();
+}
+
+function setTodoPillar(pid) {
+  _todoActivePillar = pid;
+  renderTodo();
+}
+
+function renderTodoList() {
+  const today = todayStr();
+  const el = document.getElementById('todo-list');
+  if (!el) return;
+
+  let items = STATE.todos.filter(t => t.date === today);
+  if (_todoActivePillar !== 'all') items = items.filter(t => t.pillar === _todoActivePillar);
+
+  const done = items.filter(t => t.done).length;
+  const pct = items.length ? Math.round((done / items.length) * 100) : 0;
+
+  const fill = document.getElementById('todo-progress-fill');
+  const lbl = document.getElementById('todo-progress-label');
+  const pctEl = document.getElementById('todo-progress-pct');
+  const activePillar = STATE.pillars.find(p => p.id === _todoActivePillar);
+  const fillColor = activePillar ? activePillar.color : 'var(--green)';
+  if (fill) { fill.style.width = pct + '%'; fill.style.background = fillColor; }
+  if (lbl) lbl.textContent = `${done} of ${items.length} task${items.length !== 1 ? 's' : ''} done`;
+  if (pctEl) { pctEl.textContent = pct + '%'; pctEl.style.color = fillColor; }
+
+  if (!items.length) {
+    el.innerHTML = `<div class="todo-empty">No tasks yet${_todoActivePillar !== 'all' ? ' for this pillar' : ''}. Add one above.</div>`;
+    return;
+  }
+
+  const pending = items.filter(t => !t.done);
+  const completed = items.filter(t => t.done);
+  const renderItem = t => {
+    const pillar = STATE.pillars.find(p => p.id === t.pillar);
+    const dot = pillar ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${pillar.color};margin-right:6px;flex-shrink:0;margin-top:4px"></span>` : '';
+    return `<div class="todo-item${t.done?' done':''}">
+      <div class="todo-check${t.done?' done':''}" style="${t.done?'background:'+( pillar?pillar.color:'var(--green)'):'border-color:'+(pillar?pillar.color:'var(--border2)')}"
+        onclick="toggleTodo('${t.id}')"></div>
+      <div style="flex:1;display:flex;align-items:flex-start;gap:6px">
+        ${dot}
+        <span class="todo-text${t.done?' done':''}">${t.text}</span>
+      </div>
+      <button class="btn-icon danger" onclick="deleteTodo('${t.id}')">✕</button>
+    </div>`;
+  };
+
+  el.innerHTML = pending.map(renderItem).join('') +
+    (completed.length ? `<div class="todo-date-header" style="margin-top:14px">Completed (${completed.length})</div>` + completed.map(renderItem).join('') : '');
+}
+
+function renderTodoHistory() {
+  const el = document.getElementById('todo-history');
+  if (!el) return;
+  const today = todayStr();
+  const pastDates = [...new Set(STATE.todos.filter(t => t.date < today).map(t => t.date))].sort((a,b) => b.localeCompare(a)).slice(0, 7);
+  if (!pastDates.length) { el.innerHTML = '<div class="todo-empty">No past entries yet.</div>'; return; }
+  el.innerHTML = pastDates.map(date => {
+    const items = STATE.todos.filter(t => t.date === date);
+    const done = items.filter(t => t.done).length;
+    const pct = Math.round((done / items.length) * 100);
+    const d = new Date(date + 'T12:00:00');
+    const label = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+    return `<div style="display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--text2);width:110px;flex-shrink:0">${label}</span>
+      <div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:var(--green);border-radius:2px"></div>
+      </div>
+      <span style="font-size:12px;color:var(--text3);width:70px;text-align:right">${done}/${items.length} done</span>
+    </div>`;
+  }).join('');
+}
+
+function confirmAddTodo() {
+  const input = document.getElementById('todo-new-task');
+  const text = input?.value.trim();
+  if (!text) return;
+  STATE.todos.push({
+    id: 't' + Date.now(),
+    text,
+    date: todayStr(),
+    pillar: _todoActivePillar === 'all' ? (STATE.pillars[0]?.id || 'general') : _todoActivePillar,
+    done: false
+  });
+  input.value = '';
+  save(); renderTodoList();
+}
+
+function toggleTodo(id) {
+  const t = STATE.todos.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); renderTodoList(); }
+}
+
+function deleteTodo(id) {
+  STATE.todos = STATE.todos.filter(x => x.id !== id);
+  save(); renderTodoList(); renderTodoHistory();
+}
+
+function clearCompletedTodos() {
+  STATE.todos = STATE.todos.filter(t => !t.done || t.date === todayStr());
+  save(); renderTodoHistory();
+}
+
+// ─── CALENDAR ────────────────────────────────────────────────────────────────
+const EVENT_TYPE_META = {
+  match:    { label:'Match',    cls:'event-match',    dot:'#FF5252', emoji:'⚽' },
+  training: { label:'Training', cls:'event-training', dot:'#00E676', emoji:'🏃' },
+  trial:    { label:'Trial',    cls:'event-trial',    dot:'#40C4FF', emoji:'🔍' },
+  rest:     { label:'Rest',     cls:'event-rest',     dot:'#FFB300', emoji:'😴' },
+  other:    { label:'Other',    cls:'event-other',    dot:'#CE93D8', emoji:'📌' }
+};
+
+function renderCalendar() {
+  const filter = document.getElementById('cal-type-filter')?.value || 'all';
+  const events = STATE.events.filter(e => filter === 'all' || e.type === filter);
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const lbl = document.getElementById('cal-month-label');
+  if (lbl) lbl.textContent = MONTHS[_calMonth] + ' ' + _calYear;
+
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+
+  const firstDay = new Date(_calYear, _calMonth, 1).getDay();
+  const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+  const daysInPrev = new Date(_calYear, _calMonth, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const eventsByDate = {};
+  events.forEach(ev => {
+    const d = ev.date;
+    if (!eventsByDate[d]) eventsByDate[d] = [];
+    eventsByDate[d].push(ev);
+  });
+
+  let html = DAYS.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+
+  for (let i = 0; i < firstDay; i++) {
+    const d = daysInPrev - firstDay + 1 + i;
+    html += `<div class="cal-cell other-month"><span class="cal-date-num">${d}</span></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cellDate = new Date(_calYear, _calMonth, d);
+    const isToday = cellDate.getTime() === today.getTime();
+    const dayEvents = eventsByDate[dateStr] || [];
+    const shown = dayEvents.slice(0, 3);
+    const extra = dayEvents.length - shown.length;
+    const pills = shown.map(ev => {
+      const m = EVENT_TYPE_META[ev.type] || EVENT_TYPE_META.other;
+      return `<span class="cal-event-pill ${m.cls}" onclick="openEventDetail('${ev.id}');event.stopPropagation()">${m.emoji} ${ev.title}</span>`;
+    }).join('');
+    html += `<div class="cal-cell${isToday?' today':''}" onclick="openAddEventModalForDate('${dateStr}')">
+      <span class="cal-date-num">${d}</span>
+      ${pills}
+      ${extra > 0 ? `<div class="cal-more">+${extra} more</div>` : ''}
+    </div>`;
+  }
+
+  const totalCells = firstDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-cell other-month"><span class="cal-date-num">${i}</span></div>`;
+  }
+
+  grid.innerHTML = html;
+  renderUpcoming(events);
+}
+
+function renderUpcoming(events) {
+  const el = document.getElementById('upcoming-events-list');
+  if (!el) return;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcoming = [...events]
+    .filter(e => e.date >= todayStr)
+    .sort((a,b) => a.date.localeCompare(b.date))
+    .slice(0, 8);
+
+  if (!upcoming.length) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:14px">No upcoming events. Add one or import your calendar.</p>';
+    return;
+  }
+  el.innerHTML = upcoming.map(ev => {
+    const m = EVENT_TYPE_META[ev.type] || EVENT_TYPE_META.other;
+    const [y,mo,d] = ev.date.split('-');
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(mo)-1];
+    return `<div class="upcoming-event-row">
+      <div class="upcoming-date-badge">
+        <div class="upcoming-date-day">${parseInt(d)}</div>
+        <div class="upcoming-date-mon">${mon}</div>
+      </div>
+      <div class="upcoming-event-info">
+        <div class="upcoming-event-title">
+          <span class="event-type-dot" style="background:${m.dot}"></span>${ev.title}
+        </div>
+        <div class="upcoming-event-meta">
+          ${m.label}${ev.time ? ' · ' + ev.time : ''}${ev.location ? ' · ' + ev.location : ''}
+        </div>
+      </div>
+      <button class="btn-icon" onclick="openEventDetail('${ev.id}')" style="flex-shrink:0">›</button>
+    </div>`;
+  }).join('');
+}
+
+function calPrevMonth() {
+  _calMonth--;
+  if (_calMonth < 0) { _calMonth = 11; _calYear--; }
+  renderCalendar();
+}
+function calNextMonth() {
+  _calMonth++;
+  if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+  renderCalendar();
+}
+
+function openAddEventModal() {
+  _editingEventId = null;
+  document.getElementById('modal-event-title').textContent = 'Add Event';
+  document.getElementById('new-event-title').value = '';
+  document.getElementById('new-event-type').value = 'training';
+  document.getElementById('new-event-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('new-event-time').value = '';
+  document.getElementById('new-event-location').value = '';
+  document.getElementById('new-event-notes').value = '';
+  document.getElementById('modal-add-event').classList.add('open');
+  setTimeout(() => document.getElementById('new-event-title').focus(), 50);
+}
+
+function openAddEventModalForDate(dateStr) {
+  openAddEventModal();
+  document.getElementById('new-event-date').value = dateStr;
+}
+
+function confirmAddEvent() {
+  const title = document.getElementById('new-event-title').value.trim();
+  if (!title) return;
+  const ev = {
+    id: _editingEventId || 'e' + Date.now(),
+    title,
+    type: document.getElementById('new-event-type').value,
+    date: document.getElementById('new-event-date').value,
+    time: document.getElementById('new-event-time').value.trim(),
+    location: document.getElementById('new-event-location').value.trim(),
+    notes: document.getElementById('new-event-notes').value.trim()
+  };
+  if (_editingEventId) {
+    const idx = STATE.events.findIndex(e => e.id === _editingEventId);
+    if (idx !== -1) STATE.events[idx] = ev;
+  } else {
+    STATE.events.push(ev);
+  }
+  save(); closeModal('modal-add-event'); renderCalendar();
+  toast(_editingEventId ? 'Event updated' : 'Event added', 'success');
+}
+
+function openEventDetail(id) {
+  const ev = STATE.events.find(e => e.id === id);
+  if (!ev) return;
+  const m = EVENT_TYPE_META[ev.type] || EVENT_TYPE_META.other;
+  const content = document.getElementById('event-detail-content');
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <span class="cal-event-pill ${m.cls}" style="font-size:13px;padding:4px 12px">${m.emoji} ${m.label}</span>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;margin-bottom:16px">${ev.title}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--text2)">
+      <div>📅 <strong style="color:var(--text)">${ev.date}</strong>${ev.time ? ' at ' + ev.time : ''}</div>
+      ${ev.location ? `<div>📍 <strong style="color:var(--text)">${ev.location}</strong></div>` : ''}
+      ${ev.notes ? `<div style="margin-top:8px;padding:12px;background:var(--surface2);border-radius:var(--radius);color:var(--text);line-height:1.5">${ev.notes}</div>` : ''}
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-ghost" style="font-size:13px" onclick="editEvent('${ev.id}')">✎ Edit</button>
+    </div>
+  `;
+  document.getElementById('event-detail-delete').onclick = () => deleteEvent(id);
+  document.getElementById('modal-event-detail').classList.add('open');
+}
+
+function editEvent(id) {
+  const ev = STATE.events.find(e => e.id === id);
+  if (!ev) return;
+  closeModal('modal-event-detail');
+  _editingEventId = id;
+  document.getElementById('modal-event-title').textContent = 'Edit Event';
+  document.getElementById('new-event-title').value = ev.title;
+  document.getElementById('new-event-type').value = ev.type;
+  document.getElementById('new-event-date').value = ev.date;
+  document.getElementById('new-event-time').value = ev.time || '';
+  document.getElementById('new-event-location').value = ev.location || '';
+  document.getElementById('new-event-notes').value = ev.notes || '';
+  document.getElementById('modal-add-event').classList.add('open');
+}
+
+function deleteEvent(id) {
+  STATE.events = STATE.events.filter(e => e.id !== id);
+  save(); closeModal('modal-event-detail'); renderCalendar();
+  toast('Event deleted', 'info');
+}
+
+// ─── ICS IMPORT ──────────────────────────────────────────────────────────────
+function handleICSFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => parseICS(ev.target.result, file.name);
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function parseICS(text, filename) {
+  const lines = text.replace(/\r\n /g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  const imported = [];
+  let current = null;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line === 'BEGIN:VEVENT') { current = {}; continue; }
+    if (line === 'END:VEVENT' && current) {
+      if (current.date && current.title) imported.push(current);
+      current = null; continue;
+    }
+    if (!current) continue;
+
+    if (line.startsWith('SUMMARY')) {
+      current.title = line.replace(/^SUMMARY[^:]*:/, '').trim();
+    } else if (line.startsWith('DTSTART')) {
+      const val = line.replace(/^DTSTART[^:]*:/, '').trim();
+      const y = val.slice(0,4), mo = val.slice(4,6), d = val.slice(6,8);
+      current.date = `${y}-${mo}-${d}`;
+      if (val.length > 8) current.time = val.slice(9,11) + ':' + val.slice(11,13);
+    } else if (line.startsWith('LOCATION')) {
+      current.location = line.replace(/^LOCATION[^:]*:/, '').trim();
+    } else if (line.startsWith('DESCRIPTION')) {
+      current.notes = line.replace(/^DESCRIPTION[^:]*:/, '').trim().replace(/\\n/g, '\n');
+    }
+  }
+
+  if (!imported.length) { toast('No events found in this .ics file', 'error'); return; }
+
+  imported.forEach(ev => {
+    const type = guessEventType(ev.title);
+    STATE.events.push({ id: 'e' + Date.now() + Math.random(), title: ev.title, type, date: ev.date, time: ev.time || '', location: ev.location || '', notes: ev.notes || '' });
+  });
+
+  save(); renderCalendar();
+  const statsEl = document.getElementById('ics-import-stats');
+  const statsText = document.getElementById('ics-stats-text');
+  if (statsEl && statsText) {
+    statsEl.style.display = 'block';
+    statsText.textContent = `✅ Imported ${imported.length} events from "${filename}"`;
+  }
+  toast(`Imported ${imported.length} events from calendar`, 'success');
+}
+
+function guessEventType(title) {
+  const t = title.toLowerCase();
+  if (/match|vs\.?|v\.?\s|game|fixture|cup|league|derby/.test(t)) return 'match';
+  if (/train|session|practice|drill|fitness|gym|workout/.test(t)) return 'training';
+  if (/trial|scout|tryout|assessment/.test(t)) return 'trial';
+  if (/rest|recovery|off|holiday|break/.test(t)) return 'rest';
+  return 'other';
+}
+
+// ICS drag-drop
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('ics-drop-zone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && (file.name.endsWith('.ics') || file.name.endsWith('.ical'))) {
+      const reader = new FileReader();
+      reader.onload = ev => parseICS(ev.target.result, file.name);
+      reader.readAsText(file);
+    } else { toast('Please drop a .ics calendar file', 'error'); }
+  });
+});
+
+// ─── CONTEXT MENU ────────────────────────────────────────────────────────────
+let _ctxPillarId = null;
+const ctxMenu = document.getElementById('ctx-menu');
+
+function openCtxMenu(e, pid) {
+  e.preventDefault();
+  e.stopPropagation();
+  _ctxPillarId = pid;
+  ctxMenu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+  ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 90) + 'px';
+  ctxMenu.classList.add('open');
+}
+
+function closeCtxMenu() { ctxMenu.classList.remove('open'); _ctxPillarId = null; }
+
+function ctxRename() {
+  const pid = _ctxPillarId; closeCtxMenu();
+  if (pid) openRename('pillar', pid);
+}
+
+function ctxDelete() {
+  const pid = _ctxPillarId; closeCtxMenu();
+  const p = STATE.pillars.find(x => x.id === pid);
+  if (!p) return;
+  if (!confirm(`Delete "${p.name}" and all its metrics? This cannot be undone.`)) return;
+  STATE.pillars = STATE.pillars.filter(x => x.id !== pid);
+  // return to dashboard if we were on that pillar's page
+  if (document.getElementById('page-pillar-' + pid)?.classList.contains('active')) showPage('dashboard');
+  save(); renderAll();
+  toast(`"${p.name}" deleted`, 'info');
+}
+
+document.addEventListener('click', e => { if (!ctxMenu.contains(e.target)) closeCtxMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCtxMenu(); });
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  renderNav();
+  renderPillarPages();
+  renderDashboard();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderAll();
+</script>
+</body>
+</html>
