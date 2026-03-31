@@ -500,9 +500,15 @@
     </div>
 
     <div class="card" style="padding:24px;margin-top:4px">
-      <div class="section-header" style="margin-bottom:12px">
+      <div class="section-header" style="margin-bottom:16px">
         <div class="card-title" style="margin:0">Past Days</div>
         <button class="btn btn-ghost" style="font-size:12px" onclick="clearCompletedTodos()">Clear completed</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <select id="todo-history-select" onchange="renderTodoHistory()" style="flex:1;padding:10px 14px">
+          <option value="">— Select a past day —</option>
+        </select>
+        <div id="todo-history-summary" style="font-size:13px;color:var(--text3);white-space:nowrap"></div>
       </div>
       <div id="todo-history"></div>
     </div>
@@ -1571,25 +1577,80 @@ function renderTodoList() {
 }
 
 function renderTodoHistory() {
-  const el = document.getElementById('todo-history');
-  if (!el) return;
   const today = todayStr();
-  const pastDates = [...new Set(STATE.todos.filter(t => t.date < today).map(t => t.date))].sort((a,b) => b.localeCompare(a)).slice(0, 7);
-  if (!pastDates.length) { el.innerHTML = '<div class="todo-empty">No past entries yet.</div>'; return; }
-  el.innerHTML = pastDates.map(date => {
-    const items = STATE.todos.filter(t => t.date === date);
-    const done = items.filter(t => t.done).length;
-    const pct = Math.round((done / items.length) * 100);
-    const d = new Date(date + 'T12:00:00');
-    const label = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-    return `<div style="display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:13px;color:var(--text2);width:110px;flex-shrink:0">${label}</span>
-      <div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden">
-        <div style="width:${pct}%;height:100%;background:var(--green);border-radius:2px"></div>
+  const pastDates = [...new Set(STATE.todos.filter(t => t.date < today).map(t => t.date))]
+    .sort((a,b) => b.localeCompare(a));
+
+  // populate dropdown
+  const sel = document.getElementById('todo-history-select');
+  if (sel) {
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select a past day —</option>' +
+      pastDates.map(date => {
+        const d = new Date(date + 'T12:00:00');
+        const label = d.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric', year:'numeric' });
+        const items = STATE.todos.filter(t => t.date === date);
+        const done = items.filter(t => t.done).length;
+        return `<option value="${date}">${label} · ${done}/${items.length} done</option>`;
+      }).join('');
+    if (current && pastDates.includes(current)) sel.value = current;
+  }
+
+  const el = document.getElementById('todo-history');
+  const summary = document.getElementById('todo-history-summary');
+  const selectedDate = sel?.value;
+
+  if (!pastDates.length) {
+    if (el) el.innerHTML = '<div class="todo-empty">No past entries yet.</div>';
+    if (summary) summary.textContent = '';
+    return;
+  }
+
+  if (!selectedDate) {
+    if (el) el.innerHTML = '<div class="todo-empty" style="padding:12px 0">Select a day above to view its tasks.</div>';
+    if (summary) summary.textContent = `${pastDates.length} day${pastDates.length !== 1 ? 's' : ''} logged`;
+    return;
+  }
+
+  const items = STATE.todos.filter(t => t.date === selectedDate);
+  const done = items.filter(t => t.done).length;
+  const pct = items.length ? Math.round((done / items.length) * 100) : 0;
+
+  if (summary) {
+    summary.innerHTML = `<span style="color:${pct===100?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};font-weight:600">${pct}%</span> complete`;
+  }
+
+  if (!items.length) {
+    if (el) el.innerHTML = '<div class="todo-empty">No tasks recorded for this day.</div>';
+    return;
+  }
+
+  // progress bar for selected day
+  const pending = items.filter(t => !t.done);
+  const completed = items.filter(t => t.done);
+
+  const renderHistoryItem = t => {
+    const pillar = STATE.pillars.find(p => p.id === t.pillar);
+    const dot = pillar ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${pillar.color};margin-right:6px;flex-shrink:0;margin-top:4px"></span>` : '';
+    const checkBg = t.done ? (pillar ? pillar.color : 'var(--green)') : 'transparent';
+    const checkBorder = t.done ? 'transparent' : (pillar ? pillar.color : 'var(--border2)');
+    return `<div class="todo-item${t.done?' done':''}">
+      <div class="todo-check${t.done?' done':''}" style="background:${checkBg};border-color:${checkBorder};cursor:default"></div>
+      <div style="flex:1;display:flex;align-items:flex-start;gap:6px">
+        ${dot}
+        <span class="todo-text${t.done?' done':''}">${t.text}</span>
       </div>
-      <span style="font-size:12px;color:var(--text3);width:70px;text-align:right">${done}/${items.length} done</span>
+      ${pillar ? `<span style="font-size:11px;color:${pillar.color};opacity:0.8;white-space:nowrap">${pillar.name}</span>` : ''}
     </div>`;
-  }).join('');
+  };
+
+  el.innerHTML = `
+    <div style="height:4px;background:var(--surface3);border-radius:2px;margin-bottom:16px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${pct===100?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};border-radius:2px;transition:width 0.4s"></div>
+    </div>
+    ${pending.length ? `<div class="todo-date-header">Pending (${pending.length})</div>${pending.map(renderHistoryItem).join('')}` : ''}
+    ${completed.length ? `<div class="todo-date-header" style="margin-top:${pending.length?'14px':'0'}">Completed (${completed.length})</div>${completed.map(renderHistoryItem).join('')}` : ''}
+  `;
 }
 
 function confirmAddTodo() {
