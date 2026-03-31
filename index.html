@@ -1017,11 +1017,20 @@ function renderPillarPages() {
           placeholder="Coaching feedback, personal observations, focus areas..."
           onchange="savePillarNotes('${p.id}',this.value)">${p.notes||''}</textarea>
       </div>
+
+      <div class="card" style="margin-top:16px;padding:24px">
+        <div class="section-header" style="margin-bottom:12px">
+          <div class="card-title" style="margin:0">Goals</div>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="openGoalModalForPillar('${p.id}')">+ Add Goal</button>
+        </div>
+        <div id="pillar-goals-${p.id}"></div>
+      </div>
     </div>
   `).join('');
   STATE.pillars.forEach(p => {
     renderMetrics(p.id);
     renderPillarStats(p.id);
+    renderPillarGoals(p.id);
   });
 }
 
@@ -1060,6 +1069,41 @@ function renderPillarStats(pid) {
     <div class="stat-card"><div class="stat-label">Strongest</div><div class="stat-value" style="color:var(--green)">${best?best.val:'–'}</div><div class="stat-sub">${best?best.name:'–'}</div></div>
     <div class="stat-card"><div class="stat-label">Weakest</div><div class="stat-value" style="color:var(--red)">${worst?worst.val:'–'}</div><div class="stat-sub">${worst?worst.name:'–'}</div></div>
   `;
+}
+
+function renderPillarGoals(pid) {
+  const el = document.getElementById('pillar-goals-' + pid);
+  if (!el) return;
+  const p = STATE.pillars.find(x => x.id === pid);
+  const goals = STATE.goals.filter(g => g.cat === pid);
+  if (!goals.length) {
+    el.innerHTML = `<p style="color:var(--text3);font-size:14px;padding:4px 0">No goals yet for this pillar.</p>`;
+    return;
+  }
+  const sorted = [...goals].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return a.date.localeCompare(b.date);
+  });
+  el.innerHTML = sorted.map(g => {
+    const overdue = !g.done && g.date && g.date < todayStr();
+    const dateColor = overdue ? 'var(--red)' : 'var(--text3)';
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="goal-checkbox ${g.done?'done':''}" style="margin-top:1px;flex-shrink:0"
+        onclick="toggleGoal('${g.id}');renderPillarGoals('${pid}')"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;color:${g.done?'var(--text3)':'var(--text)'};${g.done?'text-decoration:line-through':''}">${g.title}</div>
+        ${g.notes?`<div style="font-size:12px;color:var(--text3);margin-top:2px">${g.notes}</div>`:''}
+        ${g.date?`<div style="font-size:11px;color:${dateColor};margin-top:4px">🗓 ${g.date}${overdue?' · overdue':''}</div>`:''}
+      </div>
+      <button class="btn-icon danger" style="flex-shrink:0" onclick="deleteGoal('${g.id}');renderPillarGoals('${pid}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function openGoalModalForPillar(pid) {
+  openGoalModal();
+  const sel = document.getElementById('new-goal-cat');
+  if (sel) sel.value = pid;
 }
 
 function updateMetricVal(pid, mid, val) {
@@ -1255,11 +1299,14 @@ function renderGoals() {
 }
 function toggleGoal(id) {
   const g = STATE.goals.find(x=>x.id===id);
-  if (g) { g.done = !g.done; save(); renderGoals(); renderDashboard(); }
+  if (g) { g.done = !g.done; save(); renderGoals(); renderDashboard(); renderPillarGoals(g.cat); }
 }
 function deleteGoal(id) {
+  const g = STATE.goals.find(x=>x.id===id);
+  const cat = g?.cat;
   STATE.goals = STATE.goals.filter(x=>x.id!==id);
   save(); renderGoals(); renderDashboard();
+  if (cat) renderPillarGoals(cat);
 }
 function openGoalModal() {
   document.getElementById('new-goal-title').value = '';
@@ -1282,6 +1329,8 @@ function confirmAddGoal() {
     done: false
   });
   save(); closeModal('modal-goal'); renderGoals(); renderDashboard();
+  const newCat = document.getElementById('new-goal-cat')?.value;
+  if (newCat) renderPillarGoals(newCat);
 }
 
 // ─── JOURNAL ─────────────────────────────────────────────────────────────────
@@ -1635,7 +1684,8 @@ function renderTodoHistory() {
     const checkBg = t.done ? (pillar ? pillar.color : 'var(--green)') : 'transparent';
     const checkBorder = t.done ? 'transparent' : (pillar ? pillar.color : 'var(--border2)');
     return `<div class="todo-item${t.done?' done':''}">
-      <div class="todo-check${t.done?' done':''}" style="background:${checkBg};border-color:${checkBorder};cursor:default"></div>
+      <div class="todo-check${t.done?' done':''}" style="background:${checkBg};border-color:${checkBorder};cursor:pointer"
+        onclick="toggleTodoHistory('${t.id}')"></div>
       <div style="flex:1;display:flex;align-items:flex-start;gap:6px">
         ${dot}
         <span class="todo-text${t.done?' done':''}">${t.text}</span>
@@ -1671,6 +1721,11 @@ function confirmAddTodo() {
 function toggleTodo(id) {
   const t = STATE.todos.find(x => x.id === id);
   if (t) { t.done = !t.done; save(); renderTodoList(); }
+}
+
+function toggleTodoHistory(id) {
+  const t = STATE.todos.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); renderTodoHistory(); }
 }
 
 function deleteTodo(id) {
